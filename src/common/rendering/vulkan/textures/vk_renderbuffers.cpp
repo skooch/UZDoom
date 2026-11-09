@@ -141,9 +141,27 @@ void VkRenderBuffers::CreatePipeline(int width, int height)
 			.DebugName("VkRenderBuffers.PipelineView")
 			.Create(fb->device.get());
 
-		barrier.AddImage(&PipelineImage[i], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, true);
+		barrier.AddImage(&PipelineImage[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, true);
 	}
-	barrier.Execute(fb->GetCommands()->GetDrawCommands());
+	auto cmdbuffer = fb->GetCommands()->GetDrawCommands();
+	barrier.Execute(cmdbuffer);
+
+	// These are loaded on first use as a render target, so they need defined contents.
+	VkImageSubresourceRange range = {};
+	range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	range.layerCount = 1;
+	range.levelCount = 1;
+
+	VkClearColorValue value = {};
+	value.float32[3] = 1.0f;
+
+	VkImageTransition toColorAttachment;
+	for (int i = 0; i < NumPipelineImages; i++)
+	{
+		cmdbuffer->clearColorImage(PipelineImage[i].Image->image, PipelineImage[i].Layout, &value, 1, &range);
+		toColorAttachment.AddImage(&PipelineImage[i], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, false);
+	}
+	toColorAttachment.Execute(cmdbuffer);
 }
 
 void VkRenderBuffers::CreateScene(int width, int height, VkSampleCountFlagBits samples)
