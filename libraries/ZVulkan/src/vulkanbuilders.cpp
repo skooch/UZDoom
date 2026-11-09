@@ -1689,6 +1689,9 @@ VulkanInstanceBuilder::VulkanInstanceBuilder()
 
 	OptionalExtension(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME);
 	OptionalExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+	OptionalExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+#endif
 }
 
 VulkanInstanceBuilder& VulkanInstanceBuilder::ApiVersionsToTry(const std::vector<uint32_t>& versions)
@@ -1766,6 +1769,9 @@ VulkanDeviceBuilder::VulkanDeviceBuilder()
 {
 	OptionalExtension(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
 	OptionalExtension(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+	OptionalExtension("VK_KHR_portability_subset"); // Named constant needs VK_ENABLE_BETA_EXTENSIONS
+#endif
 }
 
 VulkanDeviceBuilder& VulkanDeviceBuilder::RequireExtension(const std::string& extensionName)
